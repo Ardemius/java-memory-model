@@ -17,6 +17,15 @@ Everything you ever wanted to know about the Java Memory Model!
 
 == Metaspace to replace the Permanent Generation
 
+Historically, before Java 8, the Permanent Generation was:
+* Before Java 7: Permanent Generation is part of the heap.
+See http://java-latte.blogspot.in/2014/03/metaspace-in-java-8.html, Permanent Generation section
+[quote]
+____
+Classes may get collected (unloaded) if the JVM finds they are no longer needed and space may be needed for other classes. The permanent generation is included in a full garbage collection
+Region of Java Heap for JVM Class Metadata.
+____
+See also: 
 [Quote, In Java 5, from http://www.oracle.com/technetwork/java/javase/memorymanagement-whitepaper-150215.pdf[Memory Management in the Java HotSpot™ Virtual Machine - Sun - April 2006], section 6, page 17]
 ____
 PermGen space
@@ -25,6 +34,27 @@ where the JVM stores its metadata. If an application loads a large number of cla
 permanent generation may need to be increased. You can do so by specifying the command line
 option –XX:MaxPermSize=n, where n specifies the size.
 ____
+* Java 7: owned off-heap, but still in the JVM +
+See http://docs.oracle.com/javase/7/docs/technotes/guides/management/jconsole.html
+[quote]
+____
+Permanent Generation (non-heap): The pool containing all the reflective data of the virtual machine itself, such as class and method objects. With Java VMs that use class data sharing, this generation is divided into read-only and read-write areas.
+____
+* See also from Martin Thomson:
+http://mechanical-sympathy.blogspot.fr/2013/07/java-garbage-collection-distilled.html
+[quote]
+____
+The perm generation is where the runtime stores objects it “knows” to be effectively immortal, such as Classes and static Strings. Unfortunately the common use of class loading on an ongoing basis in many applications makes the motivating assumption behind the perm generation wrong, i.e. that classes are immortal. In Java 7 interned Strings were moved from permgen to tenured, and from Java 8 the perm generation is no more and will not be discussed in this article. Most other commercial collectors do not use a separate perm space and tend to treat all long living objects as tenured.
+____
+There is also a schema showing the permanent generation has part of the heap.
+The permanent generation is shown in section _Heap Organisation in Hotspot_
+
+A good SO post on the question "is Permanent Generation part of the heap?" http://stackoverflow.com/questions/8407318/is-permanent-generation-part-of-the-heap-or-does-it-lies-in-a-different-space-of
+It shows at which point it is a complicated question.
+My answer is: it IS part of the HEAP, but "not a classic one", meaning not eden / survivor / or tenured
+It has its own JVM arguments, distinct from classic heap ones, and is shown in non-heap space in JConsole *which is wrong*
+other reason why I consider perm gen has part of the heap: it IS collected by the GC (a full GC collects it, see http://java-latte.blogspot.in/2014/03/metaspace-in-java-8.html)
+
 
 == Resources
 
@@ -42,3 +72,4 @@ Et voici sa vidéo au confiturapl 2015 : https://www.youtube.com/watch?v=wfPl_aN
 ** http://daniel.mitterdorfer.name/talks/2015/jvm-deep-dive-ljug/#/41 : schéma du slide 41 sympa, et bon schéma des différents GC existants
 ** http://www.pointsoftware.ch/de/under-the-hood-runtime-data-areas-javas-memory-model/ : bon schéma du memory model, détaillé A UTILISER POUR DETAIL !!!! MAIS, point FAUX, la perm gen fait partie de la heap !
 ** http://stackoverflow.com/questions/2129044/java-heap-terminology-young-old-and-permanent-generations : bon explication des différentes zones du modèle mémoire
+
